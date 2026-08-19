@@ -35,3 +35,10 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# Service worker : jamais de cache, pour que les mises à jour PWA soient
+# détectées immédiatement par le navigateur
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

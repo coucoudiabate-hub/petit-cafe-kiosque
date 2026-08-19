@@ -1348,17 +1348,69 @@ input[type="checkbox"], input[type="radio"] {
   cursor: pointer;
 }
 
+/* --- Admin mobile toggle (hamburger) + overlay --- */
+.admin-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 120;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--brand-dark);
+  color: var(--cream-light);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.25));
+}
+.admin-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.admin-sidebar-overlay.open {
+  display: block;
+  opacity: 1;
+}
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
+  .admin-mobile-toggle { display: flex; align-items: center; justify-content: center; }
   .admin-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s;
+    width: 82vw;
+    max-width: 300px;
+    z-index: 100;
   }
-  .admin-sidebar.open { transform: translateX(0); }
+  .admin-sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.35); }
   .admin-content {
     margin-left: 0;
-    padding: 16px;
+    padding: 64px 12px 24px;
   }
+  .admin-content h1 { font-size: 1.375rem; }
+
+  /* Grilles à 2 colonnes forcées en JS/inline -> empilées sur mobile */
+  #admin-content div[style*="grid-template-columns:1fr 1fr"],
+  #admin-content div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Cartes stats/KPI: colonnes plus étroites sur mobile */
+  #admin-content div[style*="minmax(200px"],
+  #admin-content div[style*="minmax(180px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  /* Canvas des graphiques: hauteur contenue */
+  #admin-content canvas { max-width: 100%; }
+
   .hero { padding: 50px 20px 70px; }
   .info-cards { grid-template-columns: 1fr 1fr; gap: 12px; }
   .info-card { padding: 16px 12px; }
@@ -1372,6 +1424,13 @@ input[type="checkbox"], input[type="radio"] {
   .card-body { padding: 10px 12px 12px; }
   .card-name { font-size: 0.9375rem; }
   .card-price { font-size: 1.0625rem; }
+}
+
+@media (max-width: 420px) {
+  #admin-content div[style*="minmax(200px"],
+  #admin-content div[style*="minmax(180px"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {

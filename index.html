@@ -32,6 +32,9 @@
     </div>
     <div class="flex items-center gap-2">
       <span id="restaurant-status" class="header-status-badge" style="display:none"></span>
+      <button id="pwa-install-btn" class="btn btn-outline btn-sm" style="display:none" title="Installer l'application">
+        📲 Installer
+      </button>
       <button id="dark-mode-toggle" class="btn btn-icon btn-ghost" title="Mode sombre" aria-label="Basculer le mode sombre">
         <span id="dark-mode-icon">🌙</span>
       </button>
@@ -195,6 +198,11 @@
 
       <!-- Admin Content Area -->
       <div class="admin-content" id="admin-content"></div>
+
+      <!-- Mobile-only: bouton pour ouvrir/fermer le menu admin -->
+      <button id="admin-mobile-toggle" class="admin-mobile-toggle" aria-label="Ouvrir le menu admin">☰</button>
+      <!-- Mobile-only: overlay sombre derrière le menu quand ouvert -->
+      <div id="admin-sidebar-overlay" class="admin-sidebar-overlay"></div>
     </section>
 
   </main>

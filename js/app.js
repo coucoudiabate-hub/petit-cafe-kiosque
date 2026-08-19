@@ -219,6 +219,20 @@ const App = {
         } catch {}
       }
 
+      // Cas 2b : Hash #admin (raccourci PWA "Espace Admin") → ouvre le
+      // mode admin si une session valide existe déjà, sinon reste en
+      // mode client (l'écran de connexion s'affichera via le bouton Admin).
+      if (hash === 'admin') {
+        if (DB.validateAdminToken()) {
+          this._mode = 'admin';
+          DB.setMode('admin');
+          this.render();
+        }
+        try {
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        } catch {}
+      }
+
       // Cas 3 : rechargement de page alors qu'une table est en sessionStorage
       // (le param ?table=X a été nettoyé de l'URL, mais on garde le contexte table)
       try {
@@ -260,12 +274,21 @@ const App = {
 
     // Admin sidebar navigation
     document.querySelectorAll('#admin-sidebar .sidebar-item[data-tab]').forEach(item => {
-      item.addEventListener('click', () => this.setAdminTab(item.dataset.tab));
+      item.addEventListener('click', () => {
+        this.setAdminTab(item.dataset.tab);
+        this._closeAdminSidebar(); // ferme le menu sur mobile après sélection
+      });
     });
 
     // Logout button
     const logoutBtn = document.getElementById('admin-logout');
     if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+
+    // Admin mobile menu: hamburger + overlay
+    const adminToggle = document.getElementById('admin-mobile-toggle');
+    if (adminToggle) adminToggle.addEventListener('click', () => this._toggleAdminSidebar());
+    const adminOverlay = document.getElementById('admin-sidebar-overlay');
+    if (adminOverlay) adminOverlay.addEventListener('click', () => this._closeAdminSidebar());
 
     // Client tabs
     document.querySelectorAll('.client-tab[data-tab]').forEach(tab => {
@@ -310,6 +333,7 @@ const App = {
   },
 
   logout() {
+    this._closeAdminSidebar();
     DB.adminLogout();
     this._mode = 'client';
     DB.setMode('client');
@@ -347,6 +371,23 @@ const App = {
     // Adjust hero visibility
     const hero = document.querySelector('.hero');
     if (hero) hero.style.display = tab === 'accueil' ? 'block' : 'none';
+  },
+
+  _toggleAdminSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('admin-sidebar-overlay');
+    if (!sidebar) return;
+    const isOpen = sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  },
+
+  _closeAdminSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('admin-sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
   },
 
   setAdminTab(tab) {
@@ -447,3 +488,42 @@ const App = {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// ============================================================
+// PWA — Service Worker + prompt d'installation personnalisé
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.warn('Service worker non enregistré:', err.message);
+    });
+  });
+}
+
+let _deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'inline-flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  _deferredInstallPrompt = null;
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'none';
+  if (typeof Toast !== 'undefined') Toast.success('PETIT CAFE installé avec succès !');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('pwa-install-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    if (!_deferredInstallPrompt) return;
+    _deferredInstallPrompt.prompt();
+    await _deferredInstallPrompt.userChoice;
+    _deferredInstallPrompt = null;
+    btn.style.display = 'none';
+  });
+});

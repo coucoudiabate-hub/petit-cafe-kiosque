@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lecture publique : tout le monde peut lire le catalogue, config, promos, témoignages
+    match /{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // ⚠️ POUR LA PRODUCTION : restreindre les écritures
+    // Remplacez la règle ci-dessus par :
+    //
+    // match /config/{document} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null;  // admin seulement
+    // }
+    // match /categories/{document} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null;
+    // }
+    // match /items/{document} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null;
+    // }
+    // match /orders/{document} {
+    //   allow read: if true;       // admin lit les commandes
+    //   allow create: if true;     // clients créent des commandes
+    //   allow update, delete: if request.auth != null;
+    // }
+    // match /promotions/{document} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null;
+    // }
+    // match /testimonials/{document} {
+    //   allow read: if true;
+    //   allow create: if true;     // clients créent des avis
+    //   allow update, delete: if request.auth != null;
+    // }
+  }
+}
